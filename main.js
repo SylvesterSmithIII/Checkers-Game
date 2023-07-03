@@ -23,13 +23,13 @@ init()
 function init() {
     board = [
         [1, 0, 1, 0, 0, 0, -1, 0], // bottom col
-        [0, 1, 0, 0, 0, -1, 0, -1],
+        [0, 1, 0, -1, 0, -1, 0, -1],
+        [1, 0, 1, 0, -1, 0, -1, 0],
+        [0, 1, 0, -1, 0, -1, 0, -1],
         [1, 0, 1, 0, 0, 0, -1, 0],
         [0, 1, 0, 0, 0, -1, 0, -1],
         [1, 0, 1, 0, 0, 0, -1, 0],
-        [0, 1, 0, 0, 0, -1, 0, -1],
-        [1, 0, 1, 0, 0, 0, -1, 0],
-        [0, 1, 0, 0, 0, -1, 0, -1], // top col
+        [0, 1, 0, -1, 0, -1, 0, -1], // top col
     ]
     turn = 1
     winner = null
@@ -84,7 +84,6 @@ function initialClick(colIdx, rowIdx) {
         event.stopPropagation()
         event.target.removeEventListener('click', func)
         let moves = possibleMoves(colIdx, rowIdx)
-        console.log(moves)
         event.target.addEventListener('click', chooseMove)
     }
     return func
@@ -100,14 +99,18 @@ function chooseMove(event) {
 
 function possibleMoves(colIdx, rowIdx) {
     const currentPlayer = board[colIdx][rowIdx]
-    const moves = {}
+    let moves = {}
   
-    if (currentPlayer === 1) {
+    if (turn === 1) {
       // Top left move
       const topLeftCol = colIdx - 1
       const topLeftRow = rowIdx + 1
       if (isValidPosition(topLeftCol, topLeftRow)) {
         moves.leftMove = board[topLeftCol][topLeftRow]
+        moves.leftPositionId = `c${topLeftCol}r${topLeftRow}`
+        console.log(moves)
+        moves = checkForOvertake(currentPlayer, moves)
+        console.log(moves)
       }
   
       // Top right move
@@ -115,13 +118,16 @@ function possibleMoves(colIdx, rowIdx) {
       const topRightRow = rowIdx + 1
       if (isValidPosition(topRightCol, topRightRow)) {
         moves.rightMove = board[topRightCol][topRightRow]
+        moves.rightPositionId = `c${topRightCol}r${topRightRow}`
+        moves = checkForOvertake(currentPlayer, moves)
       }
-    } else if (currentPlayer === -1) {
+    } else if (turn === -1) {
       // Bottom left move
       const bottomLeftCol = colIdx - 1
       const bottomLeftRow = rowIdx - 1
       if (isValidPosition(bottomLeftCol, bottomLeftRow)) {
         moves.leftMove = board[bottomLeftCol][bottomLeftRow]
+        moves.leftPositionId = `c${bottomLeftCol}r${bottomLeftRow}`
       }
   
       // Bottom right move
@@ -129,6 +135,7 @@ function possibleMoves(colIdx, rowIdx) {
       const bottomRightRow = rowIdx - 1
       if (isValidPosition(bottomRightCol, bottomRightRow)) {
         moves.rightMove = board[bottomRightCol][bottomRightRow]
+        moves.rightPositionId = `c${bottomRightCol}r${bottomRightRow}`
       }
     }
   
@@ -137,4 +144,19 @@ function possibleMoves(colIdx, rowIdx) {
 
 function isValidPosition(col, row) {
     return col >= 0 && col < board.length && row >= 0 && row < board[col].length
+  }
+
+function checkForOvertake(player, moves) {
+    let opponent = turn * -1
+    if (moves["leftMove"] === opponent) {
+        let col = parseInt(moves.leftPositionId.slice(1, 2)) - 1
+        let row = parseInt(moves.leftPositionId.slice(3, 4)) + 1
+        if (isValidPosition(col, row)) {
+            if (board[col][row] === 0) {
+                moves.leftMove = board[col][row]
+                moves.leftPositionId = `c${col}r${row}`
+            }
+        }
+        return moves
+    }
   }
