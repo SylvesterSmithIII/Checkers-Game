@@ -3,8 +3,9 @@ const COLORS = {
     '0': "transparent",
     '1': "black",
     '-1': "red",
+    '2': "grey",
+    '-2': "darkred"
 }
-
 /*----- state variables -----*/
 let board
 let turn
@@ -19,13 +20,16 @@ let currentRow
 /*----- cached elements  -----*/
 const boardPieces = [...document.querySelectorAll(`main > div`)]
 const playAgainBtn = document.querySelector('button')
+const messegeEl = document.querySelector('h3')
 // display for player turn
 
 /*----- event listeners -----*/
 // click on baord
 playAgainBtn.addEventListener('click', init)
 /*----- functions -----*/
+initialRender = false
 init()
+
 function init() {
     board = [
         [1, 0, 1, 0, 0, 0, -1, 0], // bottom col
@@ -39,12 +43,13 @@ function init() {
     ]
     turn = 1
     winner = null
-    initialRender = false
     render()
 }
 
 function render() {
+    checkForKing()
     renderBoard()
+    removeAllEventListners()
     renderClickEvents()
     renderMessege()
 }
@@ -79,13 +84,13 @@ function renderBoard() {
 }
 
 function renderMessege() {
-    console.log()
+    messegeEl.innerHTML = `${COLORS[turn]}'S TURN`
 }
 
 function renderClickEvents() {
     board.forEach((colArr, colIdx) => {
         colArr.forEach((elVal, rowIdx) => {
-            if (elVal === turn) {
+            if (elVal === turn || elVal === (turn * 2)) {
                 const cellId = `c${colIdx}r${rowIdx}`
                 // add event listners to the checker pieces
                 const cellEl = document.querySelector(`#${cellId} > div`)
@@ -96,41 +101,35 @@ function renderClickEvents() {
 }
 
 function initialClick(event) {
+
     event.stopPropagation()
+
     parentEl = event.target.parentNode
-    // console.log(event)
+
     currentCol = parseInt(parentEl.id.slice(1, 2))
     currentRow = parseInt(parentEl.id.slice(3, 4))
+
     renderBoard()
-    // event.target.removeEventListener('click', func)
+
     let moves = possibleMoves(currentCol, currentRow)
-    // console.log(moves)
     showPossibleMoves(moves)
-    // event.target.addEventListener('click', chooseMove)
 }
-
-// function chooseMove(event) {
-//     event.stopPropagation();
-//     console.log("second click")
-//     event.target.removeEventListener('click', chooseMove)
-
-//     event.target.addEventListener('click', initialClick)
-// }
 
 function possibleMoves(colIdx, rowIdx) {
     currentPlayer = board[colIdx][rowIdx]
     opponent = findOpponent(currentPlayer)
     let moves = []
-    let topLeft, topRight, bottomLeft, bottomRight  = {}
+    let topLeft = {}, topRight = {}, bottomLeft = {}, bottomRight  = {}
     
     if (currentPlayer === 1 || currentPlayer === 2 || currentPlayer === -2) {
       // Top left move
         validMove = true
         topLeft = checkTopLeft(colIdx, rowIdx)
       // Top right move
-      validMove = true
+        validMove = true
         topRight = checkTopRight(colIdx, rowIdx)
-    } else if (currentPlayer === -1 || currentPlayer === 2 || currentPlayer === -2) {
+    }
+     if (currentPlayer === -1 || currentPlayer === 2 || currentPlayer === -2) {
       // Bottom left move
         validMove = true
         bottomLeft = checkBottomLeft(colIdx, rowIdx)
@@ -139,86 +138,104 @@ function possibleMoves(colIdx, rowIdx) {
         bottomRight = checkBottomRight(colIdx, rowIdx)
     }
   
-    moves = [{...topLeft}, {...topRight}, {...bottomLeft}, {...bottomRight}]
+    moves = moves.concat(topLeft, topRight, bottomLeft, bottomRight)
     // trim empty objects from array of objects
-    const filteredList = moves.filter((obj) => Object.keys(obj).length !== 0);
+    moves = moves.flat(2)
+    console.log(moves)
+    let filteredList = moves.filter((obj) => Object.keys(obj).length !== 0);
     return filteredList
   }
 
 function checkTopLeft(colIdx, rowIdx) {
-    let moves = {}
+    let moves = [{}]
     const topLeftCol = colIdx - 1
     const topLeftRow = rowIdx + 1
     if (isValidPosition(topLeftCol, topLeftRow)) {
         let move = board[topLeftCol][topLeftRow]
         if (move === 0) {
-            moves.leftMove = move
-            moves.moveId = `c${topLeftCol}r${topLeftRow}`
+            moves[0].leftMove = move
+            moves[0].moveId = `c${topLeftCol}r${topLeftRow}`
+            if (!validMove) {
+                let otherMoves = possibleMoves(topLeftCol, topLeftRow)
+                moves.append([...moves, otherMoves])
+            }
             return moves
         } else if (opponent.includes(move) && validMove) {
             validMove = false
-            moves = checkTopLeft(topLeftCol, topLeftRow)
+            moves[0] = checkTopLeft(topLeftCol, topLeftRow)
         }
     }
     return moves
 }
 
 function checkTopRight(colIdx, rowIdx) {
-    let moves = {}
+    let moves = [{}]
     const topRightCol = colIdx + 1
     const topRightRow = rowIdx + 1
     if (isValidPosition(topRightCol, topRightRow)) {
         let move = board[topRightCol][topRightRow]
         if (move === 0) {
-            moves.rightMove = move
-            moves.moveId = `c${topRightCol}r${topRightRow}`
+            moves[0].rightMove = move
+            moves[0].moveId = `c${topRightCol}r${topRightRow}`
+            if (!validMove) {
+                let otherMoves = possibleMoves(topRightCol, topRightRow)
+                moves.append([...moves, ...otherMoves])
+            }
             return moves
         } else if (opponent.includes(move) && validMove) {
             validMove = false
-            moves = checkTopRight(topRightCol, topRightRow)
+            moves[0] = checkTopRight(topRightCol, topRightRow)
         }
     }
     return moves
 }
 
 function checkBottomLeft(colIdx, rowIdx) {
-    let moves = {}
+    let moves = [{}]
     const bottomLeftCol = colIdx - 1
     const bottomLeftRow = rowIdx - 1
     if (isValidPosition(bottomLeftCol, bottomLeftRow)) {
         let move = board[bottomLeftCol][bottomLeftRow]
         if (move === 0) {
-            moves.leftMove = move
-            moves.moveId = `c${bottomLeftCol}r${bottomLeftRow}`
+            moves[0].leftMove = move
+            moves[0].moveId = `c${bottomLeftCol}r${bottomLeftRow}`
+            if (!validMove) {
+                let otherMoves = possibleMoves(bottomLeftCol, bottomLeftRow)
+                moves = [...moves, ...otherMoves]
+            }
             return moves
         } else if (opponent.includes(move) && validMove) {
             validMove = false
-            moves = checkBottomLeft(bottomLeftCol, bottomLeftRow)
+            moves[0] = checkBottomLeft(bottomLeftCol, bottomLeftRow)
         }
     }
     return moves
 }
 
 function checkBottomRight(colIdx, rowIdx) {
-    let moves = {}
+    let moves = [{}]
     const bottomRightCol = colIdx + 1
     const bottomRightRow = rowIdx - 1
     if (isValidPosition(bottomRightCol, bottomRightRow)) {
         let move = board[bottomRightCol][bottomRightRow]
         if (move === 0) {
-            moves.rightMove = move
-            moves.moveId = `c${bottomRightCol}r${bottomRightRow}`
+            moves[0].rightMove = move
+            moves[0].moveId = `c${bottomRightCol}r${bottomRightRow}`
+            if (!validMove) {
+                let otherMoves = possibleMoves(bottomRightCol, bottomRightRow)
+                moves = [...moves, ...otherMoves]
+            }
             return moves
         } else if (opponent.includes(move) && validMove) {
             validMove = false
-            moves = checkBottomRight(bottomRightCol, bottomRightRow)
+            moves[0] = checkBottomRight(bottomRightCol, bottomRightRow)
         }
     }
     return moves
 }
 
 function isValidPosition(col, row) {
-    return col >= 0 && col < board.length && row >= 0 && row < board[col].length
+    return col >= 0 && col < board.length && row >= 0 && row < board.length
   }
 
 function findOpponent(player) {
@@ -233,12 +250,14 @@ function findOpponent(player) {
 function showPossibleMoves(possibleMoves) {
     removeFinalGuess()
     possibleMoves.forEach(moves => {
-        const divId = moves["moveId"]
+        let divId = moves["moveId"]
         // console.log(divId)
-        let availableMoveEl = boardPieces.find(el => el.id === divId)
-        availableMoveEl.style.backgroundColor = "gray"
-        availableMoveEl.addEventListener('click', finalGuess)
-        availableMoveEl.childNodes[0].addEventListener('click', finalGuess)
+        if (divId != undefined) {
+            let availableMoveEl = boardPieces.find(el => el.id === divId)
+            availableMoveEl.style.backgroundColor = "gray"
+            availableMoveEl.addEventListener('click', finalGuess)
+            availableMoveEl.childNodes[0].addEventListener('click', finalGuess)
+        }
     })
 }
 
@@ -277,4 +296,22 @@ function removeAllEventListners() {
         el.removeEventListener('click', finalGuess)
         el.childNodes[0].removeEventListener('click', initialClick)
     })
+}
+
+function checkForKing() {
+    board.forEach((colArr, colIdx) => {
+        colArr.forEach((elVal, rowIdx) => {
+            if (elVal === 1 && rowIdx === 7) {
+                board[colIdx][rowIdx] = 2
+            } 
+            if (elVal === -1 && rowIdx === 0) {
+                board[colIdx][rowIdx] = -2
+            }
+        })
+    })
+}
+
+function checkWinnerByElimination() {
+    if (board.every(row => row.every(piece => piece === 1 || piece === 2))) winner = 1
+    if (board.every(row => row.every(piece => piece === -1 || piece === -2))) winner = -1
 }
