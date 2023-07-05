@@ -1,11 +1,17 @@
 /*----- constants -----*/
 const COLORS = {
     '0': "transparent",
-    '1': "black",
-    '-1': "red",
-    '2': "grey",
-    '-2': "darkred"
+    '1': "static/black-piece.png",
+    '-1': "static/red-piece.png",
+    '2': "static/black-king.png",
+    '-2': "static/red-king.png"
 }
+
+const PLAYERS = {
+    '1': "black",
+    '-1': "red"
+}
+
 /*----- state variables -----*/
 let board
 let turn
@@ -55,6 +61,7 @@ function render() {
     removeAllEventListners()
     renderClickEvents()
     renderMessege()
+    displayBtn()
 }
 
 function renderBoard() {
@@ -73,14 +80,26 @@ function renderBoard() {
             if (!initialRender) {
                 // create and style checkers piece div
                 let checkerPiece = document.createElement('div')
-                checkerPiece.style.backgroundColor = COLORS[elVal]
+                if (elVal === 0) {
+                    checkerPiece.style.backgroundColor = COLORS[elVal]
+                } else {
+                    checkerPiece.style.backgroundImage = `url(${COLORS[elVal]})`
+                }
 
                 // append to that square
                 cellEl.append(checkerPiece)
             }
-
+            if ((colIdx + rowIdx) % 2 === 0) {
+                cellEl.style.backgroundColor = "rgb(156, 86, 33)"
+            } else {
+                cellEl.style.backgroundColor = "rgb(218, 158, 33)"
+            }
             // update the game pieces current collor to match board array
-            cellEl.childNodes[0].style.backgroundColor = COLORS[elVal]
+            if (elVal === 0) {
+                cellEl.childNodes[0].style.backgroundColor = COLORS[elVal]
+            } else {
+                cellEl.childNodes[0].style.backgroundImage = `url(${COLORS[elVal]})`
+            }
         })
     })
     initialRender = true
@@ -88,10 +107,18 @@ function renderBoard() {
 
 function renderMessege() {
     if (winner !== null) {
-        messegeEl.innerHTML = `${COLORS[winner]} WINS`
+        messegeEl.innerHTML = `${PLAYERS[winner]} WINS`
         return
     }
-    messegeEl.innerHTML = `${COLORS[turn]}'S TURN`
+    messegeEl.innerHTML = `${PLAYERS[turn]}'S TURN`
+}
+
+function displayBtn() {
+    if (winner === null) {
+        playAgainBtn.style.display = "none"
+    } else {
+        playAgainBtn.style.display = "block"
+    }
 }
 
 function renderClickEvents() {
@@ -344,6 +371,8 @@ function finalGuess(event) {
     let piecesToRemove = findPiecesToRemove(finalCol, finalRow)
     // console.log(piecesToRemove)
     board[currentCol][currentRow] = 0
+    let parentEl = boardPieces.find(div => div.id === `c${currentCol}r${currentRow}`)
+    parentEl.childNodes[0].style.backgroundImage = "none"
     board[finalCol][finalRow] = pieceVal
 
 
@@ -422,6 +451,8 @@ function removeJumpedPieces(eliminatedPieces) {
     eliminatedPieces.forEach(piece => {
         let id = getColAndRow(piece)
         board[id.col][id.row] = 0
+        let parentEl = boardPieces.find(div => div.id === `c${id.col}r${id.row}`)
+        parentEl.childNodes[0].style.backgroundImage = "none"
     })
 }
 
