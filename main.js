@@ -12,7 +12,8 @@ let turn
 let winner
 let currentPlayer
 let opponent
-let validMove
+// let validMove
+let visited
 let initialRender
 let currentCol
 let currentRow
@@ -33,13 +34,13 @@ init()
 function init() {
     board = [
         [1, 0, 1, 0, 0, 0, -1, 0], // bottom col
+        [0, 1, 0, 1, 0, -1, 0, -1],
+        [1, 0, 0, 0, 0, 0, -1, 0],
         [0, 1, 0, 0, 0, -1, 0, -1],
-        [1, 0, 1, 0, 0, 0, -1, 0],
-        [0, 1, 0, 0, 0, -1, 0, -1],
-        [1, 0, 1, 0, 0, 0, -1, 0],
-        [0, 1, 0, 0, 0, -1, 0, -1],
-        [1, 0, 1, 0, 0, 0, -1, 0],
-        [0, 1, 0, 0, 0, -1, 0, -1], // top col
+        [1, 0, 0, 0, -1, 0, -1, 0],
+        [0, 1, 0, 1, 0, 0, 0, -1],
+        [1, 0, 1, 0, -1, 0, -1, 0],
+        [0, 0, 0, 0, 0, -1, 0, 2], // top col
     ]
     turn = 1
     winner = null
@@ -110,133 +111,182 @@ function initialClick(event) {
     currentRow = parseInt(parentEl.id.slice(3, 4))
 
     renderBoard()
-
-    let moves = possibleMoves(currentCol, currentRow)
+    currentPlayer = board[currentCol][currentRow]
+    visited = {}
+    // validMove = true
+    let moves = possibleMoves(false, currentCol, currentRow)
     showPossibleMoves(moves)
 }
 
-function possibleMoves(colIdx, rowIdx) {
-    currentPlayer = board[colIdx][rowIdx]
+function possibleMoves(bool, colIdx, rowIdx) {
     opponent = findOpponent(currentPlayer)
     let moves = []
     let topLeft = {}, topRight = {}, bottomLeft = {}, bottomRight  = {}
+    let validMove
     
     if (currentPlayer === 1 || currentPlayer === 2 || currentPlayer === -2) {
       // Top left move
         validMove = true
-        topLeft = checkTopLeft(colIdx, rowIdx)
+        topLeft = checkTopLeft(validMove, bool, colIdx, rowIdx)
       // Top right move
         validMove = true
-        topRight = checkTopRight(colIdx, rowIdx)
+        topRight = checkTopRight(validMove, bool, colIdx, rowIdx)
     }
      if (currentPlayer === -1 || currentPlayer === 2 || currentPlayer === -2) {
       // Bottom left move
         validMove = true
-        bottomLeft = checkBottomLeft(colIdx, rowIdx)
+        bottomLeft = checkBottomLeft(validMove, bool, colIdx, rowIdx)
       // Bottom right move
         validMove = true
-        bottomRight = checkBottomRight(colIdx, rowIdx)
+        bottomRight = checkBottomRight(validMove, bool, colIdx, rowIdx)
     }
   
     moves = moves.concat(topLeft, topRight, bottomLeft, bottomRight)
     // trim empty objects from array of objects
     moves = moves.flat(2)
-    console.log(moves)
-    let filteredList = moves.filter((obj) => Object.keys(obj).length !== 0);
+    
+    let filteredList = moves.filter((obj) => Object.keys(obj).length !== 0)
+    console.log(filteredList)
     return filteredList
   }
 
-function checkTopLeft(colIdx, rowIdx) {
+function checkTopLeft(validMove, bool, colIdx, rowIdx) {
     let moves = [{}]
     const topLeftCol = colIdx - 1
     const topLeftRow = rowIdx + 1
     if (isValidPosition(topLeftCol, topLeftRow)) {
         let move = board[topLeftCol][topLeftRow]
-        if (move === 0) {
-            moves[0].leftMove = move
-            moves[0].moveId = `c${topLeftCol}r${topLeftRow}`
-            if (!validMove) {
-                let otherMoves = possibleMoves(topLeftCol, topLeftRow)
-                moves.append([...moves, otherMoves])
+        if (!visited[topLeftCol] || !visited[topLeftCol][topLeftRow]) {
+            visited[topLeftCol] = visited[topLeftCol] || {}
+            visited[topLeftCol][topLeftRow] = true
+            // still not working
+            if (move === 0) {
+                if (bool && validMove) return moves
+                
+                moves[0].leftMove = move
+                moves[0].moveId = `c${topLeftCol}r${topLeftRow}`
+                if (!validMove) {
+                    // validMove = true
+                    let otherMoves = possibleMoves(true, topLeftCol, topLeftRow)
+                    moves.push(...otherMoves)
+                    // validMove = false
+                }
+            } else if (opponent.includes(move) && validMove) {
+                validMove = false
+                let recursiveCheck = checkTopLeft(validMove, false, topLeftCol, topLeftRow)
+                moves.push(...recursiveCheck)
             }
-            return moves
-        } else if (opponent.includes(move) && validMove) {
-            validMove = false
-            moves[0] = checkTopLeft(topLeftCol, topLeftRow)
         }
     }
     return moves
 }
 
-function checkTopRight(colIdx, rowIdx) {
+function checkTopRight(validMove, bool, colIdx, rowIdx) {
     let moves = [{}]
     const topRightCol = colIdx + 1
     const topRightRow = rowIdx + 1
+
+    // check if move is within board boarders
     if (isValidPosition(topRightCol, topRightRow)) {
+
         let move = board[topRightCol][topRightRow]
-        if (move === 0) {
-            moves[0].rightMove = move
-            moves[0].moveId = `c${topRightCol}r${topRightRow}`
-            if (!validMove) {
-                let otherMoves = possibleMoves(topRightCol, topRightRow)
-                moves.append([...moves, ...otherMoves])
+
+        // check if move has already been checked
+        if (!visited[topRightCol] || !visited[topRightCol][topRightRow]) {
+            // if not updated visited squares
+            visited[topRightCol] = visited[topRightCol] || {}
+            visited[topRightCol][topRightRow] = true
+
+            // if space is a 0
+            if (move === 0) {
+                
+                // check if second time in possiveMoves function
+                //  if so return
+                if (bool && validMove) return moves
+                // update obj with info
+                moves[0].rightMove = move
+                moves[0].moveId = `c${topRightCol}r${topRightRow}`
+                // if second time in check... function go thru 
+                // the entire possibleMoves function
+                if (!validMove) {
+                    // validMove = true
+                    let otherMoves = possibleMoves(true, topRightCol, topRightRow)
+                    moves.push(...otherMoves)
+                    // validMove = false
+                }
+            } else if (opponent.includes(move) && validMove) {
+                validMove = false
+                let recursiveCheck = checkTopRight(validMove, false, topRightCol, topRightRow)
+                moves.push(...recursiveCheck)
             }
-            return moves
-        } else if (opponent.includes(move) && validMove) {
-            validMove = false
-            moves[0] = checkTopRight(topRightCol, topRightRow)
         }
     }
     return moves
 }
 
-function checkBottomLeft(colIdx, rowIdx) {
+function checkBottomLeft(validMove, bool, colIdx, rowIdx) {
     let moves = [{}]
     const bottomLeftCol = colIdx - 1
     const bottomLeftRow = rowIdx - 1
     if (isValidPosition(bottomLeftCol, bottomLeftRow)) {
         let move = board[bottomLeftCol][bottomLeftRow]
-        if (move === 0) {
-            moves[0].leftMove = move
-            moves[0].moveId = `c${bottomLeftCol}r${bottomLeftRow}`
-            if (!validMove) {
-                let otherMoves = possibleMoves(bottomLeftCol, bottomLeftRow)
-                moves = [...moves, ...otherMoves]
+        if (!visited[bottomLeftCol] || !visited[bottomLeftCol][bottomLeftRow]) {
+            visited[bottomLeftCol] = visited[bottomLeftCol] || {}
+            visited[bottomLeftCol][bottomLeftRow] = true
+            if (move === 0) {
+                if (bool && validMove) return moves
+                moves[0].leftMove = move
+                moves[0].moveId = `c${bottomLeftCol}r${bottomLeftRow}`
+                if (!validMove) {
+                    // validMove = true
+                    let otherMoves = possibleMoves(true, bottomLeftCol, bottomLeftRow)
+                    moves.push(...otherMoves)
+                    // validMove = false
+                }
+            } else if (opponent.includes(move) && validMove) {
+                validMove = false
+                let recursiveCheck = checkBottomLeft(validMove, false, bottomLeftCol, bottomLeftRow)
+                moves.push(...recursiveCheck)
             }
-            return moves
-        } else if (opponent.includes(move) && validMove) {
-            validMove = false
-            moves[0] = checkBottomLeft(bottomLeftCol, bottomLeftRow)
         }
     }
     return moves
 }
 
-function checkBottomRight(colIdx, rowIdx) {
+function checkBottomRight(validMove, bool, colIdx, rowIdx) {
     let moves = [{}]
     const bottomRightCol = colIdx + 1
     const bottomRightRow = rowIdx - 1
     if (isValidPosition(bottomRightCol, bottomRightRow)) {
         let move = board[bottomRightCol][bottomRightRow]
-        if (move === 0) {
-            moves[0].rightMove = move
-            moves[0].moveId = `c${bottomRightCol}r${bottomRightRow}`
-            if (!validMove) {
-                let otherMoves = possibleMoves(bottomRightCol, bottomRightRow)
-                moves = [...moves, ...otherMoves]
+        if (!visited[bottomRightCol] || !visited[bottomRightCol][bottomRightRow]) {
+            visited[bottomRightCol] = visited[bottomRightCol] || {}
+            visited[bottomRightCol][bottomRightRow] = true
+            // figure out how to exit if the first iteration is true
+            if (move === 0) {
+                if (bool && validMove) return moves
+                moves[0].rightMove = move
+                moves[0].moveId = `c${bottomRightCol}r${bottomRightRow}`
+                if (!validMove) {
+                    // validMove = true
+                    let otherMoves = possibleMoves(true, bottomRightCol, bottomRightRow)
+                    moves.push(...otherMoves)
+                    // validMove = false
+                }
+            } else if (opponent.includes(move) && validMove) {
+                validMove = false
+                let recursiveCheck = checkBottomRight(validMove, false, bottomRightCol, bottomRightRow)
+                moves.push(...recursiveCheck)
             }
-            return moves
-        } else if (opponent.includes(move) && validMove) {
-            validMove = false
-            moves[0] = checkBottomRight(bottomRightCol, bottomRightRow)
         }
     }
     return moves
 }
 
 function isValidPosition(col, row) {
-    return col >= 0 && col < board.length && row >= 0 && row < board.length
+    return col >= 0 && col < board.length && row >= 0 && row < board.length;
   }
+  
 
 function findOpponent(player) {
     opponent = []
@@ -315,3 +365,17 @@ function checkWinnerByElimination() {
     if (board.every(row => row.every(piece => piece === 1 || piece === 2))) winner = 1
     if (board.every(row => row.every(piece => piece === -1 || piece === -2))) winner = -1
 }
+
+// function flattenArray(arr) {
+//     let result = [];
+  
+//     arr.forEach(item => {
+//       if (Array.isArray(item)) {
+//         result = result.concat(flattenArray(item));
+//       } else {
+//         result.push(item);
+//       }
+//     });
+  
+//     return result;
+//   }
