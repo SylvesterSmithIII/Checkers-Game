@@ -17,6 +17,7 @@ let visited
 let initialRender
 let currentCol
 let currentRow
+let OPTIONS
 
 /*----- cached elements  -----*/
 const boardPieces = [...document.querySelectorAll(`main > div`)]
@@ -49,6 +50,7 @@ function init() {
 
 function render() {
     checkForKing()
+    checkWinnerByElimination()
     renderBoard()
     removeAllEventListners()
     renderClickEvents()
@@ -85,6 +87,10 @@ function renderBoard() {
 }
 
 function renderMessege() {
+    if (winner !== null) {
+        messegeEl.innerHTML = `${COLORS[winner]} WINS`
+        return
+    }
     messegeEl.innerHTML = `${COLORS[turn]}'S TURN`
 }
 
@@ -115,6 +121,8 @@ function initialClick(event) {
     visited = {}
     // validMove = true
     let moves = possibleMoves(false, currentCol, currentRow)
+    // console.log(moves)
+    // console.log(visited)
     showPossibleMoves(moves)
 }
 
@@ -146,7 +154,7 @@ function possibleMoves(bool, colIdx, rowIdx) {
     moves = moves.flat(2)
     
     let filteredList = moves.filter((obj) => Object.keys(obj).length !== 0)
-    console.log(filteredList)
+    // console.log(filteredList)
     return filteredList
   }
 
@@ -165,6 +173,8 @@ function checkTopLeft(validMove, bool, colIdx, rowIdx) {
                 
                 moves[0].leftMove = move
                 moves[0].moveId = `c${topLeftCol}r${topLeftRow}`
+                moves[0].startPosition = `c${colIdx}r${rowIdx}`
+                moves[0].positionBefore = `c${colIdx + 1}r${rowIdx - 1}`
                 if (!validMove) {
                     // validMove = true
                     let otherMoves = possibleMoves(true, topLeftCol, topLeftRow)
@@ -206,6 +216,8 @@ function checkTopRight(validMove, bool, colIdx, rowIdx) {
                 // update obj with info
                 moves[0].rightMove = move
                 moves[0].moveId = `c${topRightCol}r${topRightRow}`
+                moves[0].startPosition = `c${colIdx}r${rowIdx}`
+                moves[0].positionBefore = `c${colIdx - 1}r${rowIdx - 1}`
                 // if second time in check... function go thru 
                 // the entire possibleMoves function
                 if (!validMove) {
@@ -237,6 +249,8 @@ function checkBottomLeft(validMove, bool, colIdx, rowIdx) {
                 if (bool && validMove) return moves
                 moves[0].leftMove = move
                 moves[0].moveId = `c${bottomLeftCol}r${bottomLeftRow}`
+                moves[0].startPosition = `c${colIdx}r${rowIdx}`
+                moves[0].positionBefore = `c${colIdx + 1}r${rowIdx + 1}`
                 if (!validMove) {
                     // validMove = true
                     let otherMoves = possibleMoves(true, bottomLeftCol, bottomLeftRow)
@@ -267,6 +281,8 @@ function checkBottomRight(validMove, bool, colIdx, rowIdx) {
                 if (bool && validMove) return moves
                 moves[0].rightMove = move
                 moves[0].moveId = `c${bottomRightCol}r${bottomRightRow}`
+                moves[0].startPosition = `c${colIdx}r${rowIdx}`
+                moves[0].positionBefore = `c${colIdx - 1}r${rowIdx + 1}`
                 if (!validMove) {
                     // validMove = true
                     let otherMoves = possibleMoves(true, bottomRightCol, bottomRightRow)
@@ -299,6 +315,7 @@ function findOpponent(player) {
 
 function showPossibleMoves(possibleMoves) {
     removeFinalGuess()
+    OPTIONS = possibleMoves
     possibleMoves.forEach(moves => {
         let divId = moves["moveId"]
         // console.log(divId)
@@ -306,7 +323,7 @@ function showPossibleMoves(possibleMoves) {
             let availableMoveEl = boardPieces.find(el => el.id === divId)
             availableMoveEl.style.backgroundColor = "gray"
             availableMoveEl.addEventListener('click', finalGuess)
-            availableMoveEl.childNodes[0].addEventListener('click', finalGuess)
+            availableMoveEl.childNodes[0].addEventListener('click', event => finalGuess(event))
         }
     })
 }
@@ -323,13 +340,15 @@ function finalGuess(event) {
     let finalCol = parseInt(el.id.slice(1, 2))
     let finalRow = parseInt(el.id.slice(3, 4))
 
-    console.log(pieceVal)
-
+    // console.log(pieceVal)
+    let piecesToRemove = findPiecesToRemove(finalCol, finalRow)
+    // console.log(piecesToRemove)
     board[currentCol][currentRow] = 0
     board[finalCol][finalRow] = pieceVal
 
 
     turn *= -1
+    removeJumpedPieces(piecesToRemove)
     removeAllEventListners()
     render()
 
@@ -362,20 +381,52 @@ function checkForKing() {
 }
 
 function checkWinnerByElimination() {
-    if (board.every(row => row.every(piece => piece === 1 || piece === 2))) winner = 1
-    if (board.every(row => row.every(piece => piece === -1 || piece === -2))) winner = -1
+    if (board.every(row => row.every(piece => piece === 1 || piece === 2 || piece === 0))) winner = 1
+    if (board.every(row => row.every(piece => piece === -1 || piece === -2 || piece === 0))) winner = -1
 }
 
-// function flattenArray(arr) {
-//     let result = [];
-  
-//     arr.forEach(item => {
-//       if (Array.isArray(item)) {
-//         result = result.concat(flattenArray(item));
-//       } else {
-//         result.push(item);
-//       }
-//     });
-  
-//     return result;
-//   }
+function findPiecesToRemove(finalCol, finalRow) {
+    let piecesId = []
+    // find object that has the final more information
+    // if (moves) {
+        let choice = OPTIONS.find(move => {
+            return move["moveId"] === `c${finalCol}r${finalRow}`
+        })
+        // console.log(choice)
+        // 
+        if (finalCol === currentCol && finalRow === currentRow) {
+            return piecesId
+        } else if (choice["startPosition"] === `c${currentCol}r${currentRow}`) {
+            return piecesId
+        } else {
+            // console.log(choice.startPosition)
+            let enemypiece = choice.startPosition
+            // console.log(enemypiece)
+            piecesId.push(enemypiece)
+            // console.log(piecesId)
+            // console.log(choice.positionBefore)
+            let lastMoveId = getColAndRow(choice.positionBefore)
+            // console.log(lastMoveId)
+
+            let otherPiece = findPiecesToRemove(lastMoveId.col, lastMoveId.row)
+            piecesId.push(...otherPiece)
+            return piecesId
+
+        }
+        
+    // }
+    // if the starting position(where the move came from) is the same as the current space of the selected piece, return
+}
+
+function removeJumpedPieces(eliminatedPieces) {
+    eliminatedPieces.forEach(piece => {
+        let id = getColAndRow(piece)
+        board[id.col][id.row] = 0
+    })
+}
+
+function getColAndRow(id) {
+    col = parseInt(id.slice(1, 2))
+    row = parseInt(id.slice(3, 4))
+    return {col, row}
+}

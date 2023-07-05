@@ -15,6 +15,10 @@ h1 {
     letter-spacing: 1vmin;
 }
 
+h3 {
+   text-transform: uppercase;
+}
+
  main {
     width: 45%;
     margin-top: 2%;
