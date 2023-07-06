@@ -109,7 +109,7 @@ function renderBoard() {
 
 function renderMessege() {
     if (winner !== null) {
-        messegeEl.innerHTML = `PLAYER ${PLAYERS[winner]} WINS`
+        messegeEl.innerHTML = `<a style="color: ${PLAYERS[winner]}">${PLAYERS[winner]}</a> PLAYER WINS`
         return
     }
     messegeEl.innerHTML = `<a style="color: ${PLAYERS[turn]}">${PLAYERS[turn]}</a> PLAYER'S TURN`
@@ -146,12 +146,13 @@ function initialClick(event) {
     currentRow = parseInt(parentEl.id.slice(3, 4))
 
     renderBoard()
+
     currentPlayer = board[currentCol][currentRow]
     visited = {}
-    // validMove = true
+
     let moves = possibleMoves(false, currentCol, currentRow)
-    // console.log(moves)
-    // console.log(visited)
+    console.log(moves)
+
     showPossibleMoves(moves)
 }
 
@@ -188,32 +189,40 @@ function possibleMoves(bool, colIdx, rowIdx) {
   }
 
 function checkTopLeft(validMove, bool, colIdx, rowIdx) {
+
     let moves = [{}]
     const topLeftCol = colIdx - 1
     const topLeftRow = rowIdx + 1
+
     if (isValidPosition(topLeftCol, topLeftRow)) {
+
         let move = board[topLeftCol][topLeftRow]
+
         if (!visited[topLeftCol] || !visited[topLeftCol][topLeftRow]) {
             visited[topLeftCol] = visited[topLeftCol] || {}
             visited[topLeftCol][topLeftRow] = true
-            // still not working
+
             if (move === 0) {
+
                 if (bool && validMove) return moves
                 
                 moves[0].leftMove = move
                 moves[0].moveId = `c${topLeftCol}r${topLeftRow}`
                 moves[0].startPosition = `c${colIdx}r${rowIdx}`
                 moves[0].positionBefore = `c${colIdx + 1}r${rowIdx - 1}`
+
                 if (!validMove) {
-                    // validMove = true
+
                     let otherMoves = possibleMoves(true, topLeftCol, topLeftRow)
                     moves.push(...otherMoves)
-                    // validMove = false
+
                 }
             } else if (opponent.includes(move) && validMove) {
+
                 validMove = false
                 let recursiveCheck = checkTopLeft(validMove, false, topLeftCol, topLeftRow)
                 moves.push(...recursiveCheck)
+
             }
         }
     }
@@ -221,6 +230,7 @@ function checkTopLeft(validMove, bool, colIdx, rowIdx) {
 }
 
 function checkTopRight(validMove, bool, colIdx, rowIdx) {
+
     let moves = [{}]
     const topRightCol = colIdx + 1
     const topRightRow = rowIdx + 1
@@ -250,14 +260,20 @@ function checkTopRight(validMove, bool, colIdx, rowIdx) {
                 // if second time in check... function go thru 
                 // the entire possibleMoves function
                 if (!validMove) {
-                    // validMove = true
+                    // if passed enemy piece and found empty space. run again
                     let otherMoves = possibleMoves(true, topRightCol, topRightRow)
+                    // push any moves made
                     moves.push(...otherMoves)
                     // validMove = false
                 }
+                // if next piece is an enemy piece and move is valid
             } else if (opponent.includes(move) && validMove) {
+                // update validMove variable so next iteration will stop
+                // if another enemy piece
                 validMove = false
+                // check next position
                 let recursiveCheck = checkTopRight(validMove, false, topRightCol, topRightRow)
+                // add to moves array
                 moves.push(...recursiveCheck)
             }
         }
@@ -266,27 +282,35 @@ function checkTopRight(validMove, bool, colIdx, rowIdx) {
 }
 
 function checkBottomLeft(validMove, bool, colIdx, rowIdx) {
+
     let moves = [{}]
     const bottomLeftCol = colIdx - 1
     const bottomLeftRow = rowIdx - 1
+
     if (isValidPosition(bottomLeftCol, bottomLeftRow)) {
         let move = board[bottomLeftCol][bottomLeftRow]
+
         if (!visited[bottomLeftCol] || !visited[bottomLeftCol][bottomLeftRow]) {
             visited[bottomLeftCol] = visited[bottomLeftCol] || {}
             visited[bottomLeftCol][bottomLeftRow] = true
+
             if (move === 0) {
+
                 if (bool && validMove) return moves
+
                 moves[0].leftMove = move
                 moves[0].moveId = `c${bottomLeftCol}r${bottomLeftRow}`
                 moves[0].startPosition = `c${colIdx}r${rowIdx}`
                 moves[0].positionBefore = `c${colIdx + 1}r${rowIdx + 1}`
+
                 if (!validMove) {
-                    // validMove = true
+
                     let otherMoves = possibleMoves(true, bottomLeftCol, bottomLeftRow)
                     moves.push(...otherMoves)
-                    // validMove = false
+                    
                 }
             } else if (opponent.includes(move) && validMove) {
+
                 validMove = false
                 let recursiveCheck = checkBottomLeft(validMove, false, bottomLeftCol, bottomLeftRow)
                 moves.push(...recursiveCheck)
@@ -297,28 +321,34 @@ function checkBottomLeft(validMove, bool, colIdx, rowIdx) {
 }
 
 function checkBottomRight(validMove, bool, colIdx, rowIdx) {
+
     let moves = [{}]
     const bottomRightCol = colIdx + 1
     const bottomRightRow = rowIdx - 1
+
     if (isValidPosition(bottomRightCol, bottomRightRow)) {
         let move = board[bottomRightCol][bottomRightRow]
         if (!visited[bottomRightCol] || !visited[bottomRightCol][bottomRightRow]) {
             visited[bottomRightCol] = visited[bottomRightCol] || {}
             visited[bottomRightCol][bottomRightRow] = true
-            // figure out how to exit if the first iteration is true
+
             if (move === 0) {
+
                 if (bool && validMove) return moves
+
                 moves[0].rightMove = move
                 moves[0].moveId = `c${bottomRightCol}r${bottomRightRow}`
                 moves[0].startPosition = `c${colIdx}r${rowIdx}`
                 moves[0].positionBefore = `c${colIdx - 1}r${rowIdx + 1}`
+
                 if (!validMove) {
-                    // validMove = true
+
                     let otherMoves = possibleMoves(true, bottomRightCol, bottomRightRow)
                     moves.push(...otherMoves)
-                    // validMove = false
+
                 }
             } else if (opponent.includes(move) && validMove) {
+
                 validMove = false
                 let recursiveCheck = checkBottomRight(validMove, false, bottomRightCol, bottomRightRow)
                 moves.push(...recursiveCheck)
@@ -385,13 +415,14 @@ function finalGuess(event) {
     render()
 
 }
-
+// remove the current final guess listners
 function removeFinalGuess() {
     boardPieces.forEach(el => {
         el.removeEventListener('click', finalGuess)
     })
 }
 
+// remove every single event listner
 function removeAllEventListners() {
     boardPieces.forEach(el => {
         el.removeEventListener('click', finalGuess)
@@ -399,6 +430,7 @@ function removeAllEventListners() {
     })
 }
 
+// if piece got to opposite end change value to 2 or -2 (kings)
 function checkForKing() {
     board.forEach((colArr, colIdx) => {
         colArr.forEach((elVal, rowIdx) => {
@@ -412,15 +444,19 @@ function checkForKing() {
     })
 }
 
+// check if every single piece is one of the two
 function checkWinnerByElimination() {
     if (board.every(row => row.every(piece => piece === 1 || piece === 2 || piece === 0))) winner = 1
     if (board.every(row => row.every(piece => piece === -1 || piece === -2 || piece === 0))) winner = -1
 }
 
 function checkWinnerCornering() {
+    // if first render return
     if (!initialRender) return
+
     let remainingEnemies = []
-    console.log(opponent)
+    // iterate through board array and get positions and values of
+    // every enemy piece and add object to array
     board.forEach((colArr, colIdx) => {
         colArr.forEach((elVal, rowIdx) => {
             if (opponent.includes(elVal)) {
@@ -434,50 +470,57 @@ function checkWinnerCornering() {
         })
     })
 
+
     let moveOptions = false
-    console.log(opponent)
+    // iterate through remainingEnemies
     for (let move of remainingEnemies) {
+        // update global variable
         currentPlayer = move.id
-        let moves = possibleMoves(true, move.col, move.row)
-        if (moves.length === 0) {
+        visited = {}
+        // iterate through possible movies with enemy piece
+        let moves = possibleMoves(false, move.col, move.row)
+
+        // if eneemy can make any moves change bool and exit loop
+        if (moves.length > 0) {
             moveOptions = true
             break
         }
     }
+    // if no moves update winner
     if (!moveOptions) winner = (turn * -1)
 }
 
 function findPiecesToRemove(finalCol, finalRow) {
     let piecesId = []
-    // find object that has the final more information
-    // if (moves) {
-        let choice = OPTIONS.find(move => {
-            return move["moveId"] === `c${finalCol}r${finalRow}`
-        })
-        // console.log(choice)
-        // 
-        if (finalCol === currentCol && finalRow === currentRow) {
-            return piecesId
-        } else if (choice["startPosition"] === `c${currentCol}r${currentRow}`) {
-            return piecesId
-        } else {
-            // console.log(choice.startPosition)
-            let enemypiece = choice.startPosition
-            // console.log(enemypiece)
-            piecesId.push(enemypiece)
-            // console.log(piecesId)
-            // console.log(choice.positionBefore)
-            let lastMoveId = getColAndRow(choice.positionBefore)
-            // console.log(lastMoveId)
 
-            let otherPiece = findPiecesToRemove(lastMoveId.col, lastMoveId.row)
-            piecesId.push(...otherPiece)
-            return piecesId
+    // find object that has the final move information
+    let choice = OPTIONS.find(move => {
+        return move["moveId"] === `c${finalCol}r${finalRow}`
+    })
+    // if current it position is also final position exit
+    if (finalCol === currentCol && finalRow === currentRow) {
+        return piecesId
+        // if only moving one space return
+    } else if (choice["startPosition"] === `c${currentCol}r${currentRow}`) {
+        return piecesId
+    } else {
 
-        }
-        
-    // }
-    // if the starting position(where the move came from) is the same as the current space of the selected piece, return
+        // piece right before final is an enemy piece
+        let enemypiece = choice.startPosition
+
+        // add it
+        piecesId.push(enemypiece)
+
+        // slice id to get col and row
+        let lastMoveId = getColAndRow(choice.positionBefore)
+
+        // go back an iteration until find "current col and row"
+        let otherPiece = findPiecesToRemove(lastMoveId.col, lastMoveId.row)
+        // add each item to array
+        piecesId.push(...otherPiece)
+        return piecesId
+
+    }
 }
 
 function removeJumpedPieces(eliminatedPieces) {

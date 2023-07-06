@@ -1,20 +1,20 @@
 body {
-    /* viewport units: vh (viewport height) vw, vmin (smallest between vh & vw) */
-    margin: 0;
-    font-family: 'Open Sans', sans-serif;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    overflow-y: auto;
-    background-image: url("grass.png");
-    background-repeat: repeat;
- }
+   /* viewport units: vh (viewport height) vw, vmin (smallest between vh & vw) */
+   margin: 0;
+   font-family: 'Open Sans', sans-serif;
+   display: flex;
+   flex-direction: column;
+   justify-content: center;
+   align-items: center;
+   overflow-y: auto;
+   background-image: url("grass.png");
+   background-repeat: repeat;
+}
 
 h1 {
-    font-size: 6vmin;
-    color: darkgray;
-    letter-spacing: 1vmin;
+   font-size: 6vmin;
+   color: darkgray;
+   letter-spacing: 1vmin;
 }
 
 h3 {
@@ -25,9 +25,9 @@ h3 {
 
 main {
    height: 70vh;
+   width: 70vh;
    margin-top: 2%;
    margin-bottom: 2%;
-   aspect-ratio: 1/1;
    border: 2px solid black;
    display: grid;
    grid-template-columns: repeat(8, 1fr);
@@ -37,12 +37,14 @@ main {
 @media (max-width: 768px) {
    main {
       height: 55vh;
+      width: 55vh;
    }
 }
 
 @media (max-width: 480px) {
    main {
       height: 40vh;
+      width: 40vh;
    }
 }
 
@@ -63,18 +65,19 @@ main > div > div {
 }
 
 .my-button {
+   margin-bottom: 10px;
    background-color: grey;
    color: white;
    padding: 10px 20px;
    font-size: 16px;
    border: none;
    border-radius: 10px;
- }
- 
- .my-button:hover {
+}
+
+.my-button:hover {
    background-color: darkgrey;
    color: black;
- }
+}
 
 .choice {
    background-color: white !important;
