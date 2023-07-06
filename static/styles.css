@@ -7,7 +7,8 @@ body {
     justify-content: center;
     align-items: center;
     overflow-y: auto;
-    background-color: green;
+    background-image: url("grass.png");
+    background-repeat: repeat;
  }
 
 h1 {
@@ -17,35 +18,68 @@ h1 {
 }
 
 h3 {
+   font-size: 3vmin;
    text-transform: uppercase;
+   letter-spacing: 1vmin;
 }
 
- main {
-    width: 45%;
-    margin-top: 2%;
-    margin-bottom: 2%;
-    aspect-ratio: 1/1;
-    border: 1px solid black;
-    display: grid;
-    grid-template-columns: repeat(8, 1fr);
-    grid-template-rows: repeat(8, 1fr);
- }
+main {
+   height: 70vh;
+   margin-top: 2%;
+   margin-bottom: 2%;
+   aspect-ratio: 1/1;
+   border: 2px solid black;
+   display: grid;
+   grid-template-columns: repeat(8, 1fr);
+   grid-template-rows: repeat(8, 1fr);
+}
 
- main > div {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border: 1px solid black;
- }
+@media (max-width: 768px) {
+   main {
+      height: 55vh;
+   }
+}
 
- main > div > div {
-    height: 80%;
-    width: 80%;
-    border-radius: 50%;
-    background-size: cover;
+@media (max-width: 480px) {
+   main {
+      height: 40vh;
+   }
+}
+
+
+main > div {
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   border: 1px solid black;
+}
+
+main > div > div {
+   height: 80%;
+   width: 80%;
+   border-radius: 50%;
+   background-size: cover;
    background-position: center;
+}
+
+.my-button {
+   background-color: grey;
+   color: white;
+   padding: 10px 20px;
+   font-size: 16px;
+   border: none;
+   border-radius: 10px;
+ }
+ 
+ .my-button:hover {
+   background-color: darkgrey;
+   color: black;
  }
 
- button {
-    margin-bottom: 3%;
- }
+.choice {
+   background-color: white !important;
+}
+
+.choice:hover {
+   background-color: black !important;
+}

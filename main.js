@@ -18,7 +18,6 @@ let turn
 let winner
 let currentPlayer
 let opponent
-// let validMove
 let visited
 let initialRender
 let currentCol
@@ -29,25 +28,32 @@ let OPTIONS
 const boardPieces = [...document.querySelectorAll(`main > div`)]
 const playAgainBtn = document.querySelector('button')
 const messegeEl = document.querySelector('h3')
-// display for player turn
 
 /*----- event listeners -----*/
-// click on baord
 playAgainBtn.addEventListener('click', init)
+
 /*----- functions -----*/
 initialRender = false
 init()
 
 function init() {
     board = [
-        [1, 0, 1, 0, 0, 0, -1, 0], // bottom col
-        [0, 1, 0, 0, 0, -1, 0, -1],
-        [1, 0, 1, 0, 0, 0, -1, 0],
-        [0, 1, 0, 0, 0, -1, 0, -1],
-        [1, 0, 1, 0, 0, 0, -1, 0],
-        [0, 1, 0, 0, 0, -1, 0, -1],
-        [1, 0, 1, 0, 0, 0, -1, 0],
-        [0, 1, 0, 0, 0, -1, 0, -1], // top col
+        [0, 0, 0, 0, 0, 0, 0, 0], // bottom col
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 1, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 1, 0, -1],
+        // [1, 0, 1, 0, 0, 0, -1, 0], // bottom col
+        // [0, 1, 0, 0, 0, -1, 0, -1],
+        // [1, 0, 1, 0, 0, 0, -1, 0],
+        // [0, 1, 0, 0, 0, -1, 0, -1],
+        // [1, 0, 1, 0, 0, 0, -1, 0],
+        // [0, 1, 0, 0, 0, -1, 0, -1],
+        // [1, 0, 1, 0, 0, 0, -1, 0],
+        // [0, 1, 0, 0, 0, -1, 0, -1], // top col
     ]
     turn = 1
     winner = null
@@ -57,6 +63,7 @@ function init() {
 function render() {
     checkForKing()
     checkWinnerByElimination()
+    checkWinnerCornering()
     renderBoard()
     removeAllEventListners()
     renderClickEvents()
@@ -90,13 +97,16 @@ function renderBoard() {
                 cellEl.append(checkerPiece)
             }
             if ((colIdx + rowIdx) % 2 === 0) {
-                cellEl.style.backgroundColor = "rgb(156, 86, 33)"
+                cellEl.style.backgroundColor = "rgb(69, 54, 48)"
+                cellEl.classList.remove('choice')
             } else {
-                cellEl.style.backgroundColor = "rgb(218, 158, 33)"
+                cellEl.style.backgroundColor = "rgb(155, 126, 75)"
             }
             // update the game pieces current collor to match board array
             if (elVal === 0) {
                 cellEl.childNodes[0].style.backgroundColor = COLORS[elVal]
+                // when clicked play again btn
+                cellEl.childNodes[0].style.backgroundImage = `none`
             } else {
                 cellEl.childNodes[0].style.backgroundImage = `url(${COLORS[elVal]})`
             }
@@ -107,10 +117,10 @@ function renderBoard() {
 
 function renderMessege() {
     if (winner !== null) {
-        messegeEl.innerHTML = `${PLAYERS[winner]} WINS`
+        messegeEl.innerHTML = `PLAYER ${PLAYERS[winner]} WINS`
         return
     }
-    messegeEl.innerHTML = `${PLAYERS[turn]}'S TURN`
+    messegeEl.innerHTML = `<a style="color: ${PLAYERS[turn]}">${PLAYERS[turn]}</a> PLAYER'S TURN`
 }
 
 function displayBtn() {
@@ -348,7 +358,7 @@ function showPossibleMoves(possibleMoves) {
         // console.log(divId)
         if (divId != undefined) {
             let availableMoveEl = boardPieces.find(el => el.id === divId)
-            availableMoveEl.style.backgroundColor = "gray"
+            availableMoveEl.setAttribute('class', 'choice')
             availableMoveEl.addEventListener('click', finalGuess)
             availableMoveEl.childNodes[0].addEventListener('click', event => finalGuess(event))
         }
@@ -377,6 +387,7 @@ function finalGuess(event) {
 
 
     turn *= -1
+
     removeJumpedPieces(piecesToRemove)
     removeAllEventListners()
     render()
@@ -412,6 +423,36 @@ function checkForKing() {
 function checkWinnerByElimination() {
     if (board.every(row => row.every(piece => piece === 1 || piece === 2 || piece === 0))) winner = 1
     if (board.every(row => row.every(piece => piece === -1 || piece === -2 || piece === 0))) winner = -1
+}
+
+function checkWinnerCornering() {
+    if (!initialRender) return
+    let remainingEnemies = []
+    console.log(opponent)
+    board.forEach((colArr, colIdx) => {
+        colArr.forEach((elVal, rowIdx) => {
+            if (opponent.includes(elVal)) {
+                let piece = {
+                    "id": elVal,
+                    "col": colIdx,
+                    "row": rowIdx,
+                }
+                remainingEnemies.push(piece)
+            }
+        })
+    })
+
+    let moveOptions = true
+    console.log(opponent)
+    for (let move of remainingEnemies) {
+        currentPlayer = move.id
+        let moves = possibleMoves(true, move.col, move.row)
+        if (moves.length === 0) {
+            moveOptions = false
+            break
+        }
+    }
+    if (!moveOptions) winner = (turn * -1)
 }
 
 function findPiecesToRemove(finalCol, finalRow) {
