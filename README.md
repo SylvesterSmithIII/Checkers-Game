@@ -10,9 +10,20 @@
 
 # Screenshots
 
+**Double Jump**
+
 <img src="screenshots/double-jump.png" alt="double jump" height="500px" width="500px">
+
+**Triple Jump**
+
 <img src="screenshots/triple-jump.png" alt="triple jump" height="500px" width="500px">
+
+**Winning By Eliminating All Pieces**
+
 <img src="screenshots/winning-by-elim.png" alt="winning by elimination" height="500px" width="500px">
+
+**Winning By Cornering Opponent**
+
 <img src="screenshots/winner-by-cornering.png" alt="winning by cornering" height="500px" width="500px">
 
 # Technology Used
@@ -40,4 +51,4 @@
 * Implement a computer to play against
 * Options to change piece and board color
 * Add custom sounds for the clicks
-* Add animation for pieces jumping
+* Add animation to pieces jumping
