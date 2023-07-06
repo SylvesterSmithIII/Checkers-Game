@@ -434,13 +434,13 @@ function checkWinnerCornering() {
         })
     })
 
-    let moveOptions = true
+    let moveOptions = false
     console.log(opponent)
     for (let move of remainingEnemies) {
         currentPlayer = move.id
         let moves = possibleMoves(true, move.col, move.row)
         if (moves.length === 0) {
-            moveOptions = false
+            moveOptions = true
             break
         }
     }
