@@ -151,7 +151,6 @@ function initialClick(event) {
     visited = {}
 
     let moves = possibleMoves(false, currentCol, currentRow)
-    console.log(moves)
 
     showPossibleMoves(moves)
 }
@@ -386,7 +385,6 @@ function showPossibleMoves(possibleMoves) {
         }
     })
 }
-
 function finalGuess(event) {
     event.stopPropagation()
     if (event.target.id === "") {
